@@ -23,12 +23,9 @@ path = require("path");
  */
 const unzip = (pathIn, pathOut) => {
   return new Promise((resolve, reject) => {
-    // Create the output directory if it doesn't exist
     fs.mkdir(pathOut, { recursive: true })
       .then(() => {
         const zip = new AdmZip(pathIn);
-
-        // Extract the files
         zip.extractAllTo(pathOut, /*overwrite=*/ true);
 
         console.log("Extraction operation complete");
@@ -69,47 +66,10 @@ const readDir = (dir) => {
  * @param {string} pathProcessed
  * @return {promise}
  */
-// const grayScale = (pathIn, pathOut) => {
-//   return new Promise((resolve, reject) => {
-//     fs.readFile(pathIn)
-//       .then((inputBuffer) => {
-//         const inputImage = new PNG({
-//           filterType: 4,
-//         });
-//         try {
-//           inputImage.parse(inputBuffer);
-//         } catch (parseError) {
-//           // Handle the parseError here
-//           reject(`Error parsing PNG: ${parseError}`);
-//           return;
-//         }
-
-//         for (let y = 0; y < inputImage.height; y++) {
-//           for (let x = 0; x < inputImage.width; x++) {
-//             const idx = (inputImage.width * y + x) << 2;
-//             const grayValue = (inputImage.data[idx] + inputImage.data[idx + 1] + inputImage.data[idx + 2]) / 3;
-//             inputImage.data[idx] = grayValue;
-//             inputImage.data[idx + 1] = grayValue;
-//             inputImage.data[idx + 2] = grayValue;
-//           }
-//         }
-
-//         const outputBuffer = Buffer.from(inputImage.data.buffer);
-
-//         fs.writeFile(pathOut, outputBuffer)
-//           .then(() => {
-//             console.log("Grayscale operation complete");
-//             resolve();
-//           })
-//           .catch((err) => reject(err));
-//       })
-//       .catch((err) => reject(err));
-//   });
-// };
-
 const grayScale = (pathIn, pathOut) => {
   return new Promise((resolve, reject) => {
-    createReadStream(pathIn)
+    try {
+      createReadStream(pathIn)
       .pipe(
         new PNG({
           filterType: 4,
@@ -128,26 +88,12 @@ const grayScale = (pathIn, pathOut) => {
         this.pack().pipe(createWriteStream(pathOut))
         resolve()
       })
+    } catch (error) {
+      reject(error)
+    }
   });
 };
 
-
-const zipFilePath = path.join(__dirname, "myfile.zip");
-const outputDir = path.join(__dirname, "unzipped");
-
-unzip(zipFilePath, outputDir)
-  .then(() => console.log("Extraction completed successfully."))
-  .then(() => readDir("unzipped"))
-  .then((pngFilePaths) => {
-      console.log("List of PNG files:");
-      console.log(pngFilePaths)
-      const convertPromises = pngFilePaths.map((image) => {
-        return grayScale(image, `grayscaled/${image.slice(9)}`);
-      });
-      return Promise.all(convertPromises);
-  })
-  .then(() => console.log("Grayscale operation completed successfully."))
-  .catch((err) => console.error("Error:", err));
 
 module.exports = {
   unzip,
@@ -160,6 +106,8 @@ module.exports = {
 
 
 
+
+// ***NOTES FOR ME***
 // const path = require("path");
 // /*
 //  * Project: Milestone 1
